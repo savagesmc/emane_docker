@@ -1,0 +1,14 @@
+version: '3'
+services:
+   emane:
+      build:
+         context: .
+         dockerfile: Dockerfile.emane
+      image: emane:latest
+   emane-tutorials:
+      build:
+         context: .
+         dockerfile: Dockerfile.emane-tutorials
+      image: emane-tutorials:latest
+      depends_on:
+         - emane

@@ -1,0 +1,62 @@
+from emane:latest
+
+RUN apt-get update && apt-get install -y \
+      lxc \
+      fakeroot \
+      bridge-utils \
+      mgen \
+      fping \
+      gpsd \
+      gpsd-clients \
+      iperf \
+      multitail \
+      olsrd \
+      openssh-server \
+      python-tk \
+      python-pmw \
+      python-lxml \
+      python-stdeb \
+      build-essential
+
+WORKDIR /build
+RUN git clone https://github.com/adjacentlink/pynodestatviz \
+   && cd pynodestatviz \
+   && make -j `nproc` deb \
+   && dpkg -i deb_dist/pynodestatviz*.deb \
+   && cd ..
+
+RUN apt-get update && apt-get install -y \
+    libzmq3-dev \
+    python-zmq
+
+RUN git clone https://github.com/adjacentlink/opentestpoint \
+   && cd opentestpoint \
+   && ./autogen.sh \
+   && ./configure \
+   && make deb \
+   && dpkg -i .debbuild/*.deb \
+   && cd ..
+
+RUN git clone https://github.com/adjacentlink/emane-tutorial.git \
+   && cd emane-tutorial\
+   && make
+
+RUN x=1; \
+    while [ $x -lt 10 ];  \
+    do \
+      echo 10.99.0.$x node-$x >> /etc/hosts; \
+      echo 10.100.0.$x radio-$x >> /etc/hosts; \
+      x=$[$x+1]; \
+    done
+
+RUN echo 10.99.0.100 node-server >> /etc/hosts
+
+RUN git clone https://github.com/lxc/lxc.git \
+   && cd lxc \
+   && ./autogen.sh \
+   && ./configure --prefix=/usr\
+   && make -j `nproc` \
+   && make -j `nproc` install \
+   && cd ..
+
+CMD ["/usr/sbin/sshd", "-D"]
