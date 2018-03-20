@@ -38,7 +38,7 @@ RUN echo "export VISIBLE=now" >> /etc/profile
 #####################################################################
 #Build and install emane
 
-RUN sudo apt-get install -y \
+RUN apt-get install -y \
     autoconf \
     automake \
     debhelper \
@@ -58,17 +58,22 @@ RUN sudo apt-get install -y \
     python-setuptools \
     uuid-dev
 
+RUN apt-get install -y python-pip python3-pip
+
+RUN pip3 install python3-protobuf
+RUN apt-get install -y python3-lxml
+
 WORKDIR /build
 RUN git clone https://github.com/adjacentlink/emane \
    && cd emane \
    && ./autogen.sh && ./configure --prefix=/usr/local \
-   && make -j `nproc` deb \
+   && make deb WITHOUT_PYTHON3=1 -j `nproc` \
    && cd .debbuild \
    && dpkg -i *.deb \
    && cd ../..
 #####################################################################
 
-RUN sudo apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y \
       lxc
 
 EXPOSE 22
