@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
       gpsd \
       gpsd-clients \
       iperf \
-      lxc \
+      iptables \
       mgen \
       multitail \
       olsrd \
@@ -22,16 +22,9 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /build
 
-RUN dpkg -L liblxc1 | grep -v '/\.$' | \
-  while read f; do \
-      if [ -f $f ]; then \
-          rm $f; \
-      fi \
-  done
-
 RUN git clone https://github.com/lxc/lxc.git \
    && cd lxc \
-   && git checkout stable-2.1 \
+   && git checkout lxc-1.0.11 \
    && ./autogen.sh \
    && ./configure --prefix=/usr \
    && make -j `nproc` \
@@ -60,14 +53,6 @@ RUN git clone https://github.com/adjacentlink/emane-tutorial.git \
    && cd emane-tutorial\
    && make
 
-RUN x=1; \
-    while [ $x -lt 10 ];  \
-    do \
-      echo 10.99.0.$x node-$x >> /etc/hosts; \
-      echo 10.100.0.$x radio-$x >> /etc/hosts; \
-      x=$((x+1)); \
-    done
-
-RUN echo 10.99.0.100 node-server >> /etc/hosts
+ADD make_nodes.sh /build/emane-tutorial
 
 CMD ["/usr/sbin/sshd", "-D"]
